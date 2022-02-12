@@ -1,6 +1,10 @@
 # Neural Network Project
 
 ## How to set up? 
+```
+git clone git@github.com:ShreyeshArangath/NeuralNetworkProject.git
+cd NeuralNetowrkProject
+```
 Download the dataset and move it to the `./data`
 
 ## Requirements 
