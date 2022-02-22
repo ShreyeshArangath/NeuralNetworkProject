@@ -1,79 +1,100 @@
 from tensorflow import keras 
 from keras import layers, applications
+# from keras.preprocessing import image
+from keras.applications.efficientnet import EfficientNetB0, EfficientNetB5, EfficientNetB7
+from keras.applications.resnet_v2 import ResNet152V2
+from keras.applications.densenet import DenseNet121
+# from keras.applications import EfficientNetB0
+from keras.applications.efficientnet import preprocess_input
+
 import os 
+import numpy as np
+import cv2
+from keras.models import Sequential
 
 # Data preprocessing 
-from keras.preprocessing.image import load_img
+from keras.preprocessing.image import load_img, img_to_array
 
 # Load all the images from the folder 
 dataFolder = os.path.dirname('data/x5_RGB/train/RGB/')
 imagePaths = []
+pil = []
 
 for case in os.listdir(dataFolder):
-    print(case)
+    # print(case)
     f = os.path.join(dataFolder, case)
     for image in os.listdir(f):
         imagePath = os.path.join(dataFolder, case, image)
         imagePaths.append(imagePath)
 
-print(imagePaths)
+# print(imagePaths[:10])
+
+for imagePath in imagePaths:
+    #img = load_img(imagePath) 
+    img = cv2.imread(imagePath)
+    img = cv2.resize(img, (224,224))   
+    x = img_to_array(img)    
+    x = np.expand_dims(x, axis=0)
+    x = preprocess_input(x)
+    # print(x)
+    pil.append(x)
+
+# print(pil)
+
+model = Sequential()
+
+# Set up the layers 
+
+efficientNetB0 = EfficientNetB0(weights="imagenet")   
+# temp = efficientNetB0.predict(pil[0])
+# print(temp)
+# Swish(x) = x · sigmoid(x)
+
+efficientNetB5 = EfficientNetB5(weights="imagenet")  
+
+efficientNetB7 = EfficientNetB7(weights="imagenet")
+
+# ResNet152V2 
+resNet152V2 = ResNet152V2(weights='imagenet')
+
+# DenseNet121
+denseNet121 = DenseNet121(weights="imagenet")
 
 
-# # Set up the layers 
-# efficientNetB0 = applications.EfficientNetB0(
-#     include_top=True,
-#     weights="imagenet",
-#     input_tensor=None,
-#     input_shape=None,
-#     pooling=None,
-#     classes=1000,
-#     classifier_activation="softmax"
-# )
 
-# efficientNetB5 = applications.EfficientNetB5(
-#     include_top=True,
-#     weights="imagenet",
-#     input_tensor=None,
-#     input_shape=None,
-#     pooling=None,
-#     classes=1000,
-#     classifier_activation="softmax"
-# )
+globalAveragePooling = layers.GlobalAveragePooling2D(
+    data_format=None, keepdims=False
+)
 
-# efficientNetB7 = applications.EfficientNetB7(
-#     include_top=True,
-#     weights="imagenet",
-#     input_tensor=None,
-#     input_shape=None,
-#     pooling=None,
-#     classes=1000,
-#     classifier_activation="softmax"
-# )
+rate = 0.2
+dropout = layers.Dropout(rate, noise_shape=None, seed=None)
 
-#  # ResNet152V2 
+dense = layers.Dense(
+    0,
+    activation=None,
+    use_bias=True,
+    kernel_initializer="glorot_uniform",
+    bias_initializer="zeros",
+    kernel_regularizer=None,
+    bias_regularizer=None,
+    activity_regularizer=None,
+    kernel_constraint=None,
+    bias_constraint=None
+)
+softmax = layers.Softmax()
 
-# # DenseNet121
+# Pretrained Models
+model.add(efficientNetB0)
+model.add(efficientNetB5)
+model.add(efficientNetB7)
+model.add(resNet152V2)
+model.add(denseNet121)
 
-# globalAveragePooling = layers.GlobalAveragePooling2D(
-#     data_format=None, keepdims=False
-# )
+model.add(globalAveragePooling)
+model.add(dropout)
+model.add(dense)
+model.add(softmax)
 
-# dropout = layers.Dropout(rate, noise_shape=None, seed=None)
-
-# dense = layers.Dense(
-#     units,
-#     activation=None,
-#     use_bias=True,
-#     kernel_initializer="glorot_uniform",
-#     bias_initializer="zeros",
-#     kernel_regularizer=None,
-#     bias_regularizer=None,
-#     activity_regularizer=None,
-#     kernel_constraint=None,
-#     bias_constraint=None
-# )
-
-# softmax = layers.Softmax()
 
 # Train the model 
 
