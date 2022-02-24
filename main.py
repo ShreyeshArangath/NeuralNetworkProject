@@ -20,10 +20,18 @@ dataFolder = os.path.dirname('data/x5_RGB/train/RGB/')
 imagePaths = []
 pil = []
 
+isIgnoredFile = lambda x: x[0] == "."
+
 for case in os.listdir(dataFolder):
     # print(case)
+    if isIgnoredFile(case):
+        continue
+
     f = os.path.join(dataFolder, case)
     for image in os.listdir(f):
+        if isIgnoredFile(image):
+            continue
+        
         imagePath = os.path.join(dataFolder, case, image)
         imagePaths.append(imagePath)
 
@@ -46,31 +54,18 @@ model = Sequential()
 # Set up the layers 
 
 efficientNetB0 = EfficientNetB0(weights="imagenet")   
-# temp = efficientNetB0.predict(pil[0])
-# print(temp)
-# Swish(x) = x · sigmoid(x)
-
 efficientNetB5 = EfficientNetB5(weights="imagenet")  
-
 efficientNetB7 = EfficientNetB7(weights="imagenet")
-
-# ResNet152V2 
 resNet152V2 = ResNet152V2(weights='imagenet')
-
-# DenseNet121
 denseNet121 = DenseNet121(weights="imagenet")
 
+RATE = 0.2
+UNITS = 0 
 
-
-globalAveragePooling = layers.GlobalAveragePooling2D(
-    data_format=None, keepdims=False
-)
-
-rate = 0.2
-dropout = layers.Dropout(rate, noise_shape=None, seed=None)
-
+globalAveragePooling = layers.GlobalAveragePooling2D(data_format=None, keepdims=False)
+dropout = layers.Dropout(RATE, noise_shape=None, seed=None)
 dense = layers.Dense(
-    0,
+    UNITS,
     activation=None,
     use_bias=True,
     kernel_initializer="glorot_uniform",
@@ -90,6 +85,7 @@ model.add(efficientNetB7)
 model.add(resNet152V2)
 model.add(denseNet121)
 
+# Additional layers
 model.add(globalAveragePooling)
 model.add(dropout)
 model.add(dense)
