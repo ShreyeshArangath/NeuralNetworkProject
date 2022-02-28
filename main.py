@@ -53,11 +53,12 @@ model = Sequential()
 
 # Set up the layers 
 
-efficientNetB0 = EfficientNetB0(weights="imagenet")   
-efficientNetB5 = EfficientNetB5(weights="imagenet")  
-efficientNetB7 = EfficientNetB7(weights="imagenet")
-resNet152V2 = ResNet152V2(weights='imagenet')
-denseNet121 = DenseNet121(weights="imagenet")
+# include_top: Whether to include the fully-connected layer at the top of the network. Defaults to True.
+efficientNetB0 = EfficientNetB0(weights="imagenet", include_top=False)   
+efficientNetB5 = EfficientNetB5(weights="imagenet", include_top=False)  
+efficientNetB7 = EfficientNetB7(weights="imagenet", include_top=False)
+resNet152V2 = ResNet152V2(weights='imagenet', include_top=False)
+denseNet121 = DenseNet121(weights="imagenet", include_top=False)
 
 RATE = 0.2
 UNITS = 0 
