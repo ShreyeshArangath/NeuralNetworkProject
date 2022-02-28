@@ -53,11 +53,11 @@ model = Sequential()
 
 # Set up the layers 
 
-efficientNetB0 = EfficientNetB0(weights="imagenet")   
-efficientNetB5 = EfficientNetB5(weights="imagenet")  
-efficientNetB7 = EfficientNetB7(weights="imagenet")
-resNet152V2 = ResNet152V2(weights='imagenet')
-denseNet121 = DenseNet121(weights="imagenet")
+efficientNetB0 = EfficientNetB0(weights="imagenet", include_top = False)   
+# efficientNetB5 = EfficientNetB5(weights="imagenet", include_top=False)  
+# efficientNetB7 = EfficientNetB7(weights="imagenet", include_top=False)
+# resNet152V2 = ResNet152V2(weights='imagenet', include_top=False)
+# denseNet121 = DenseNet121(weights="imagenet")
 
 RATE = 0.2
 UNITS = 0 
@@ -80,10 +80,10 @@ softmax = layers.Softmax()
 
 # Pretrained Models
 model.add(efficientNetB0)
-model.add(efficientNetB5)
-model.add(efficientNetB7)
-model.add(resNet152V2)
-model.add(denseNet121)
+# model.add(efficientNetB5)
+# model.add(efficientNetB7)
+# model.add(resNet152V2)
+# model.add(denseNet121)
 
 # Additional layers
 model.add(globalAveragePooling)
@@ -91,7 +91,7 @@ model.add(dropout)
 model.add(dense)
 model.add(softmax)
 
-
+model.summary()
 # Train the model 
 
 # Evaluate the model 
