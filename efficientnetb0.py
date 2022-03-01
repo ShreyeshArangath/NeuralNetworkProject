@@ -69,9 +69,9 @@ print(Y[35:])
 
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
-pil, Y = shuffle(pil,Y, random_state=1)
+images, Y = shuffle(images,Y, random_state=1)
 
-train_x, test_x,train_y,test_y = train_test_split(pil, Y, test_size=0.05, random_state=127)
+train_x, test_x,train_y,test_y = train_test_split(images, Y, test_size=0.05, random_state=127)
 
 print(train_x.shape)
 print(train_y.shape)
@@ -125,9 +125,10 @@ model.add(dropout)
 model.add(dense)
 model.add(softmax)
 
+model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics=['accuracy', 'precision', 'recall', 'f1'])
 model.summary()
 # # Train the model 
-hist = model.fit(train_x, train_y, epochs=30, verbose=2)
+hist = model.fit(train_x, train_y, epochs=10, verbose=2)
 
 def plot_hist(hist):
     plt.plot(hist.history['accuracy'])
