@@ -92,24 +92,25 @@ model.trainable=False
 # Rebuild top
 x = layers.GlobalAveragePooling2D(name="avg_pool")(model.output)
 # x = layers.GlobalAveragePooling2D(data_format=None, keepdims=False)(x)
-# x = layers.BatchNormalization()(x)
+x = layers.BatchNormalization()(x)
 
 RATE = 0.2
-UNITS = 7
+NUM_CLASSES = 7
 
 x = layers.Dropout(RATE, name='top_dropout')(x)
-outputs = layers.Dense(UNITS, activation='softmax', name='Dense')(x)
+outputs = layers.Dense(NUM_CLASSES, activation='softmax', name='pred')(x)
 # out = layers.Softmax(input_shape = (IMG_SIZE, IMG_SIZE, 3))(x)
 
 # Compile
-model = keras.Model(inputs=inputs, outputs=outputs, name='EfficientNet')
+model = keras.Model(inputs=inputs, outputs=outputs, name='EfficientNetB0')
 optimizer=keras.optimizers.Adam(learning_rate=1e-2)
 model.compile(
-    optimizer=optimizer, loss ='mse', metrics=['accuracy']
+    optimizer=optimizer, loss ='categorical_crossentropy', metrics=['accuracy']
 )
 model.summary()
 
 # Train the model 
+
 hist = model.fit(train_x, train_y, epochs=5, verbose=2)
 
 def plot_hist(hist):
@@ -121,7 +122,7 @@ def plot_hist(hist):
     plt.show()
 
 plot_hist(hist)
-# # Evaluate the model 
+# Evaluate the model 
 
 preds = model.evaluate(test_x, test_y)
 print ("Loss = " + str(preds[0]))
