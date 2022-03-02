@@ -1,4 +1,3 @@
-wd
 #$ -S /bin/bash
 #$ -N MLTESTS
 #$ -o $JOB_NAME.o$JOB_ID
@@ -13,4 +12,4 @@ wd
 . $HOME/conda/etc/profile.d/conda.sh
 conda activate
 
-python3 main.py
+python main.py
