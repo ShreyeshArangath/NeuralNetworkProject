@@ -17,6 +17,8 @@ from keras.preprocessing.image import load_img, img_to_array
 
 # Load all the images from the folder 
 dataFolder = os.path.dirname('data/x5_RGB/train/RGB/')
+#For hpcc:
+#dataFolder = os.path.dirname('data/x5/train/')
 imagePaths = []
 pil = []
 
