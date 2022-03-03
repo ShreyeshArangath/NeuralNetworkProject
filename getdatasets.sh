@@ -1,3 +1,10 @@
+#!/bin/sh
+#SBATCH -J getDatasets
+#SBATCH  -o %x.%j.out
+#SBATCH  -e %x.%j.err
+#SBATCH  -p quanah
+#SBATCH -N 1
+#SBATCH --ntasks-per-node 1
 curl "https://sviro.kl.dfki.de/download/renault-zoe-2/?wpdmdl=399&refresh=621ecb451121e1646185285" -o test.zip 
 unzip test.zip -d data 
 rm test.zip 
