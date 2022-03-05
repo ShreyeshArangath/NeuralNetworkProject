@@ -64,15 +64,12 @@ y=y.reshape(-1,1)
 
 ct = ColumnTransformer([('my_ohe', OneHotEncoder(), [0])], remainder='passthrough')
 Y = ct.fit_transform(y) #.toarray()
-print(Y[:5])
-print(Y[35:])
 
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 images, Y = shuffle(images,Y, random_state=1)
 
 train_x, test_x,train_y,test_y = train_test_split(images, Y, test_size=0.05, random_state=127)
-
 print(train_x.shape)
 print(train_y.shape)
 print(test_x.shape)
@@ -88,15 +85,18 @@ model = Sequential()
 # Set up the layers 
 
 efficientNetB0 = EfficientNetB0(weights="imagenet", include_top = False)   
+for layer in efficientNetB0.layers:
+    layer.trainable = False
+
 # efficientNetB5 = EfficientNetB5(weights="imagenet", include_top=False)  
 # efficientNetB7 = EfficientNetB7(weights="imagenet", include_top=False)
 # resNet152V2 = ResNet152V2(weights='imagenet', include_top=False)
 # denseNet121 = DenseNet121(weights="imagenet")
 
 RATE = 0.2
-UNITS = 0 
+UNITS = 7 
 
-globalAveragePooling = layers.GlobalAveragePooling2D(data_format=None, keepdims=False)
+globalAveragePooling = layers.GlobalAveragePooling2D()
 dropout = layers.Dropout(RATE, noise_shape=None, seed=None)
 dense = layers.Dense(
     UNITS,
