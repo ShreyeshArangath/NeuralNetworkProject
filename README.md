@@ -28,6 +28,11 @@ conda activate
 ```
 sh runProgram.sh
 ```
+#### Run program as a job
+```
+sbatch <name_of_file>.sh
+```
+<sub>If anyone needs help with creating headers for jobs, please let Rayven know. It has changed a bit.</sub>
 
 ## Requirements 
 1. Python 3.x 
