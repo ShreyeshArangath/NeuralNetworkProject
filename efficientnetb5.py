@@ -19,7 +19,7 @@ from keras.models import Sequential
 
 # Data preprocessing 
 from keras.preprocessing.image import load_img, img_to_array
- 
+
 def getDataset(dataFolder, subset, imageSize = (224, 224), batchSize = 32):
     train_ds = keras.utils.image_dataset_from_directory(
       dataFolder,
@@ -44,8 +44,8 @@ def dumpModel(modelName, phase):
     pickle.dump(model, open(modelName, 'wb'))
 
 EPOCHS = 5
-modelName = "efficientNetB0"
-inpShape =  (224, 224, 3)
+modelName = "efficientNetB5"
+inpShape =  (456, 456, 3)
 trainingFolder = 'data/x5/train/RGB/'
 testingFolder = 'data/x5/test_with_labels/RGB/'
 train_ds = getDataset(trainingFolder, "training")
@@ -62,7 +62,7 @@ x = baseModel(inp, training=False)
 x =  layers.GlobalAveragePooling2D(name="avg_pool")(x)
 x = layers.Dropout(dropoutRate, noise_shape=None, seed=None)(x)
 out = layers.Dense(numClasses,activation="softmax", name = "pred")(x)
-model = keras.Model(inp, out, name="FeatureExtraction-B0")
+model = keras.Model(inp, out, name="FeatureExtraction-B5")
 model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.01),
           loss=tf.keras.losses.SparseCategoricalCrossentropy(),
           metrics=['accuracy'])
@@ -77,16 +77,6 @@ hist_results = model.fit(
 dumpModel(modelName, "phase1")
 
 
-# Fine tuning the Feature Extraction Model 
-baseModel.trainable = True
-for layer in model.layers[1].layers:
-    if isinstance(layer, layers.BatchNormalization):
-        layer.trainable = False
-        
-model.compile(loss = tf.keras.losses.SparseCategoricalCrossentropy(),
-              optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001),
-              metrics = ["accuracy"])
-
 # Train it again 
 hist_results_tuned = model.fit(
   train_ds,
@@ -95,4 +85,3 @@ hist_results_tuned = model.fit(
 )
 
 dumpModel(modelName, "phase2")
-
