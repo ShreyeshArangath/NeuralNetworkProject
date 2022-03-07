@@ -1,4 +1,5 @@
-from tensorflow import keras 
+import tensorflow as tf
+from tensorflow import keras, sparse 
 from keras import layers, applications
 # from keras.preprocessing import image
 from keras.applications.efficientnet import EfficientNetB0, EfficientNetB5, EfficientNetB7
@@ -6,6 +7,8 @@ from keras.applications.resnet_v2 import ResNet152V2
 from keras.applications.densenet import DenseNet121
 # from keras.applications import EfficientNetB0
 from keras.applications.efficientnet import preprocess_input
+from keras.preprocessing.image import ImageDataGenerator
+
 
 import os 
 import numpy as np
@@ -14,133 +17,82 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from keras.models import Sequential
 
-
-
 # Data preprocessing 
 from keras.preprocessing.image import load_img, img_to_array
  
-# Load all the images from the folder 
-dataFolder = os.path.dirname('data/x5_RGB/train/RGB/')
-imagePaths = []
-pil = []
-classLabels = []
-isIgnoredFile = lambda x: x[0] == "."
-
-for case in os.listdir(dataFolder):
-    # print(case)
-    if isIgnoredFile(case):
-        continue
-
-    f = os.path.join(dataFolder, case)
-    for image in os.listdir(f):
-        if isIgnoredFile(image):
-            continue
-        label = f[-1]
-        classLabels.append(label)
-        imagePath = os.path.join(dataFolder, case, image)
-        imagePaths.append(imagePath)
-df = pd.DataFrame(data=zip(classLabels, imagePaths), columns=["Labels", "Images"])
+def getDataset(dataFolder, subset, imageSize = (224, 224), batchSize = 32):
+    train_ds = keras.utils.image_dataset_from_directory(
+      dataFolder,
+      seed=123,
+      image_size=imageSize,
+      batch_size=batchSize)
+    return train_ds
 
 
-IMAGE_SIZE = 224 
-images = []
-for imagePath in imagePaths:
-    img = cv2.imread(imagePath)
-    img = cv2.resize(img, (IMAGE_SIZE, IMAGE_SIZE))   
-    images.append(img)
+def configurePerformance(train_ds, val_ds): 
+    AUTOTUNE = tf.data.AUTOTUNE
+    train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+    val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+    return train_ds, val_ds
 
-images = np.array(images)
-images = images.astype('float32')/255.0 #Normalize 
-images.shape
-#(6000, 224, 224, 3)
+# def buildModel(dropoutRate, numClasses, inpShape = (224, 224, 3)):
+import pickle
 
-from sklearn.preprocessing import LabelEncoder ,OneHotEncoder
-y = df['Labels'].values
-yLabelEncoder = LabelEncoder()
-y = yLabelEncoder.fit_transform(y)
+def dumpModel(modelName, phase): 
+    # Save the trained model as a pickle string.
+    modelName = "model_" + modelName + "_ " + phase + ".pkl"
+    pickle.dump(model, open(modelName, 'wb'))
 
-from sklearn.compose import ColumnTransformer
-y=y.reshape(-1,1)
+EPOCHS = 5
+modelName = "efficientNetB0"
+inpShape =  (224, 224, 3)
+trainingFolder = 'data/x5/train/RGB/'
+testingFolder = 'data/x5/test_with_labels/RGB/'
+train_ds = getDataset(trainingFolder, "training")
+val_ds =  getDataset(testingFolder, "validation")
 
-ct = ColumnTransformer([('my_ohe', OneHotEncoder(), [0])], remainder='passthrough')
-Y = ct.fit_transform(y) #.toarray()
+dropoutRate = 0.2
+numClasses = 7 
+inp = layers.Input(shape=inpShape)
+baseModel = EfficientNetB0(weights="imagenet",
+                   include_top = False) 
 
-from sklearn.utils import shuffle
-from sklearn.model_selection import train_test_split
-images, Y = shuffle(images,Y, random_state=1)
+baseModel.trainable = False 
+x = baseModel(inp, training=False)
+x =  layers.GlobalAveragePooling2D(name="avg_pool")(x)
+x = layers.Dropout(dropoutRate, noise_shape=None, seed=None)(x)
+out = layers.Dense(numClasses,activation="softmax", name = "pred")(x)
+model = keras.Model(inp, out, name="FeatureExtraction-B0")
+model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.01),
+          loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+          metrics=['accuracy'])
 
-train_x, test_x,train_y,test_y = train_test_split(images, Y, test_size=0.05, random_state=127)
-print(train_x.shape)
-print(train_y.shape)
-print(test_x.shape)
-print(test_y.shape)
-
-
-NUM_CLASSES = 7
-IMG_SIZE = 224
-#x = layers.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
-#outputs=EfficientNetB0(include_top=False, weights='imagenet', classes=NUM_CLASSES)(inputs)
-model = Sequential()
-
-# Set up the layers 
-
-efficientNetB0 = EfficientNetB0(weights="imagenet", include_top = False)   
-for layer in efficientNetB0.layers:
-    layer.trainable = False
-
-# efficientNetB5 = EfficientNetB5(weights="imagenet", include_top=False)  
-# efficientNetB7 = EfficientNetB7(weights="imagenet", include_top=False)
-# resNet152V2 = ResNet152V2(weights='imagenet', include_top=False)
-# denseNet121 = DenseNet121(weights="imagenet")
-
-RATE = 0.2
-UNITS = 7 
-
-globalAveragePooling = layers.GlobalAveragePooling2D()
-dropout = layers.Dropout(RATE, noise_shape=None, seed=None)
-dense = layers.Dense(
-    UNITS,
-    activation=None,
-    use_bias=True,
-    kernel_initializer="glorot_uniform",
-    bias_initializer="zeros",
-    kernel_regularizer=None,
-    bias_regularizer=None,
-    activity_regularizer=None,
-    kernel_constraint=None,
-    bias_constraint=None
+# Feature extraction without the top layers 
+hist_results = model.fit(
+  train_ds,
+  validation_data=val_ds,
+  epochs=EPOCHS
 )
-softmax = layers.Softmax()
 
-# # Pretrained Models
-model.add(efficientNetB0)
-# model.add(efficientNetB5)
-# model.add(efficientNetB7)
-# model.add(resNet152V2)
-# model.add(denseNet121)
+dumpModel(modelName, "phase1")
 
-# # Additional layers
-model.add(globalAveragePooling)
-model.add(dropout)
-model.add(dense)
-model.add(softmax)
 
-model.compile(optimizer='adam', loss = 'categorical_crossentropy', metrics=['accuracy', 'precision', 'recall', 'f1'])
-model.summary()
-# # Train the model 
-hist = model.fit(train_x, train_y, epochs=10, verbose=2)
+# Fine tuning the Feature Extraction Model 
+baseModel.trainable = True
+for layer in model.layers[1].layers:
+    if isinstance(layer, layers.BatchNormalization):
+        layer.trainable = False
+        
+model.compile(loss = tf.keras.losses.SparseCategoricalCrossentropy(),
+              optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001),
+              metrics = ["accuracy"])
 
-def plot_hist(hist):
-    plt.plot(hist.history['accuracy'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(["train", "validation"], loc="upper left")
-    plt.show()
+# Train it again 
+hist_results_tuned = model.fit(
+  train_ds,
+  validation_data=val_ds,
+  epochs=EPOCHS
+)
 
-plot_hist(hist)
-# # Evaluate the model 
+dumpModel(modelName, "phase2")
 
-preds = model.evaluate(test_x, test_y)
-print ("Loss = " + str(preds[0]))
-print ("Test Accuracy = " + str(preds[1]))
