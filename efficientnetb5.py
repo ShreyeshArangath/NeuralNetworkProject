@@ -19,3 +19,4 @@ from keras.models import Sequential
 
 # Data preprocessing 
 from keras.preprocessing.image import load_img, img_to_array
+
