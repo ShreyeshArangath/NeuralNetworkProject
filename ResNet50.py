@@ -11,23 +11,26 @@ from keras.preprocessing.image import ImageDataGenerator
 
 
 import os 
-import numpy as np
-import cv2
-import pandas as pd
-import matplotlib.pyplot as plt
-from keras.models import Sequential
+
+
+# CHANGE:
+# batchSize: 64 for ResNet, 32 for others
+# imageSize: depends on pretrained model
+# modelName
+# trainingFolder: x5_RGB -> x5
+# testingFolder: x5_RGB -> x5
+# keras.Model(name='FeatureExtraction-<model name>')
 
 # Data preprocessing 
 from keras.preprocessing.image import load_img, img_to_array
  
-def getDataset(dataFolder, subset, imageSize = (224, 224), batchSize = 32):
+def getDataset(dataFolder, subset, imageSize = (224, 224), batchSize = 64):
     train_ds = keras.utils.image_dataset_from_directory(
       dataFolder,
       seed=123,
       image_size=imageSize,
       batch_size=batchSize)
     return train_ds
-
 
 def configurePerformance(train_ds, val_ds): 
     AUTOTUNE = tf.data.AUTOTUNE
@@ -42,15 +45,20 @@ def dumpModel(modelName, phase):
     # Save the trained model as a pickle string.
     modelName = "model_" + modelName + "_ " + phase + ".pkl"
     pickle.dump(model, open(modelName, 'wb'))
+    
+    
 EPOCHS = 5
 modelName = "ResNet50"
 inpShape =  (224, 224, 3)
+
 trainingFolder = 'data/x5/train/RGB/'
 testingFolder = 'data/x5/test_with_labels/RGB/'
 train_ds = getDataset(trainingFolder, "training")
 val_ds =  getDataset(testingFolder, "validation")
-Found 6000 files belonging to 7 classes.
-Found 1500 files belonging to 7 classes.
+
+# Found 6000 files belonging to 7 classes.
+# Found 1500 files belonging to 7 classes.
+
 dropoutRate = 0.2
 numClasses = 7 
 inp = layers.Input(shape=inpShape)
@@ -66,6 +74,8 @@ model = keras.Model(inp, out, name="FeatureExtraction-ResNet50")
 model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.01),
           loss=tf.keras.losses.SparseCategoricalCrossentropy(),
           metrics=['accuracy'])
+          
+          
 # Feature extraction without the top layers 
 hist_results = model.fit(
   train_ds,
@@ -74,3 +84,28 @@ hist_results = model.fit(
 )
 
 dumpModel(modelName, "phase1")
+
+
+# Fine tuning the Feature Extraction Model 
+baseModel.trainable = True
+for layer in model.layers[1].layers:
+    if isinstance(layer, layers.BatchNormalization):
+        layer.trainable = False
+        
+model.compile(loss = tf.keras.losses.SparseCategoricalCrossentropy(),
+              optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001),
+              metrics = ["accuracy"])
+
+
+# Train it again 
+hist_results_tuned = model.fit(
+  train_ds,
+  validation_data=val_ds,
+  epochs=EPOCHS
+)
+
+dumpModel(modelName, "phase2")
+
+
+# preds = model.predict(val_ds, verbose = 1)
+# model.evaluate(val_ds)
