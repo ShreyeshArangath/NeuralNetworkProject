@@ -48,7 +48,8 @@ modelName = "efficientNetB5"
 inpShape =  (456, 456, 3)
 trainingFolder = 'data/x5/train/RGB/'
 testingFolder = 'data/x5/test_with_labels/RGB/'
-train_ds = getDataset(trainingFolder, "training")
+# IMPORTANT
+train_ds = getDataset(trainingFolder, "training", imageSize=(456, 456), batchSize=32)
 val_ds =  getDataset(testingFolder, "validation")
 
 dropoutRate = 0.2
