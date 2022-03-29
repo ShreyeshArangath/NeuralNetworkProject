@@ -50,7 +50,7 @@ trainingFolder = 'data/x5/train/RGB/'
 testingFolder = 'data/x5/test_with_labels/RGB/'
 # IMPORTANT
 train_ds = getDataset(trainingFolder, "training", imageSize=(456, 456), batchSize=32)
-val_ds =  getDataset(testingFolder, "validation")
+val_ds =  getDataset(testingFolder, "validation", imageSize=(456, 456), batchSize=32)
 
 dropoutRate = 0.2
 numClasses = 7 
