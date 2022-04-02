@@ -53,16 +53,13 @@ inpShape =  (224, 224, 3)
 
 trainingFolder = 'data/x5/train/RGB/'
 testingFolder = 'data/x5/test_with_labels/RGB/'
-train_ds = getDataset(trainingFolder, "training")
-val_ds =  getDataset(testingFolder, "validation")
-
-# Found 6000 files belonging to 7 classes.
-# Found 1500 files belonging to 7 classes.
+train_ds = getDataset(trainingFolder, "training", batchSize=64)
+val_ds =  getDataset(testingFolder, "validation", batchSize=64)
 
 dropoutRate = 0.2
 numClasses = 7 
 inp = layers.Input(shape=inpShape)
-baseModel = EfficientNetB0(weights="imagenet",
+baseModel = tf.keras.applications.resnet50.ResNet50(weights="imagenet",
                    include_top = False) 
 
 baseModel.trainable = False 
@@ -85,7 +82,6 @@ hist_results = model.fit(
 
 dumpModel(modelName, "phase1")
 
-
 # Fine tuning the Feature Extraction Model 
 baseModel.trainable = True
 for layer in model.layers[1].layers:
@@ -96,7 +92,6 @@ model.compile(loss = tf.keras.losses.SparseCategoricalCrossentropy(),
               optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001),
               metrics = ["accuracy"])
 
-
 # Train it again 
 hist_results_tuned = model.fit(
   train_ds,
@@ -106,6 +101,5 @@ hist_results_tuned = model.fit(
 
 dumpModel(modelName, "phase2")
 
-
-# preds = model.predict(val_ds, verbose = 1)
-# model.evaluate(val_ds)
+score = model.evaluate(val_ds)
+print(score)
