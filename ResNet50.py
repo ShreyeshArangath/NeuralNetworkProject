@@ -11,23 +11,26 @@ from keras.preprocessing.image import ImageDataGenerator
 
 
 import os 
-import numpy as np
-import cv2
-import pandas as pd
-import matplotlib.pyplot as plt
-from keras.models import Sequential
+
+
+# CHANGE:
+# batchSize: 64 for ResNet, 32 for others
+# imageSize: depends on pretrained model
+# modelName
+# trainingFolder: x5_RGB -> x5
+# testingFolder: x5_RGB -> x5
+# keras.Model(name='FeatureExtraction-<model name>')
 
 # Data preprocessing 
 from keras.preprocessing.image import load_img, img_to_array
  
-def getDataset(dataFolder, subset, imageSize = (224, 224), batchSize = 32):
+def getDataset(dataFolder, subset, imageSize = (224, 224), batchSize = 64):
     train_ds = keras.utils.image_dataset_from_directory(
       dataFolder,
       seed=123,
       image_size=imageSize,
       batch_size=batchSize)
     return train_ds
-
 
 def configurePerformance(train_ds, val_ds): 
     AUTOTUNE = tf.data.AUTOTUNE
@@ -42,9 +45,12 @@ def dumpModel(modelName, phase):
     # Save the trained model as a pickle string.
     modelName = "model_" + modelName + "_ " + phase + ".pkl"
     pickle.dump(model, open(modelName, 'wb'))
+    
+    
 EPOCHS = 5
 modelName = "ResNet50"
 inpShape =  (224, 224, 3)
+
 trainingFolder = 'data/x5/train/RGB/'
 testingFolder = 'data/x5/test_with_labels/RGB/'
 train_ds = getDataset(trainingFolder, "training", batchSize=64)
@@ -65,6 +71,8 @@ model = keras.Model(inp, out, name="FeatureExtraction-ResNet50")
 model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.01),
           loss=tf.keras.losses.SparseCategoricalCrossentropy(),
           metrics=['accuracy'])
+          
+          
 # Feature extraction without the top layers 
 hist_results = model.fit(
   train_ds,
@@ -91,7 +99,7 @@ hist_results_tuned = model.fit(
   epochs=EPOCHS
 )
 
-dumpModel(modelName, "phase1")
+dumpModel(modelName, "phase2")
 
 score = model.evaluate(val_ds)
 print(score)
