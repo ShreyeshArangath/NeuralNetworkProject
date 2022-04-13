@@ -106,7 +106,6 @@ hist_results_tuned = model.fit(
 
 dumpModel(modelName, "phase2")
 
-# wait and see if it breaks
 # preds = model.predict(val_ds, verbose = 1)
 # model.evaluate(val_ds)
 
