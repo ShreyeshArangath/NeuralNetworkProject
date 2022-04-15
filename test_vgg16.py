@@ -3,8 +3,8 @@ from tensorflow import keras
 from keras import layers
 # from keras.preprocessing import image
 from keras.applications.efficientnet import EfficientNetB0
+from keras.applications.vgg16 import VGG16
 import tensorflow_addons as tfa
-
 
 from keras import backend as K
 
@@ -51,7 +51,7 @@ def dumpModel(modelName, phase):
     # Save the trained model as a pickle string.
     modelName = "model_" + modelName + "_ " + phase + ".pkl"
     pickle.dump(model, open(modelName, 'wb'))
-
+    
 def getDatasetsByCar(cars):
     train_ds = None 
     val_ds = None 
@@ -69,7 +69,7 @@ def getDatasetsByCar(cars):
     return train_ds, val_ds
 
 EPOCHS = 5
-modelName = "efficientNetB0"
+modelName = "vgg16"
 # Initial layer input shape
 inpShape =  (224, 224, 3)
 cars = ['x5', 'model3']
@@ -83,13 +83,11 @@ train_ds, val_ds = getDatasetsByCar(cars)
 
 train_ds, val_ds = configurePerformance(train_ds, val_ds)
 
-
 dropoutRate = 0.2
 numClasses = 7 
 inp = layers.Input(shape=inpShape)
-baseModel = EfficientNetB0(weights="imagenet",
+baseModel = VGG16(weights="imagenet",
                    include_top = False) 
-
 baseModel.trainable = False 
 x = baseModel(inp, training=False)
 x =  layers.GlobalAveragePooling2D(name="avg_pool")(x)
@@ -143,8 +141,3 @@ dumpModel(modelName, "phase2")
 
 preds = model.predict(val_ds, verbose = 1)
 model.evaluate(val_ds)
-
-"""
-recall_m:162/188 [========================>.....] - ETA: 30s - loss: 0.1416 - accuracy: 0.9541 - recall_m:163/188
-
-"""
