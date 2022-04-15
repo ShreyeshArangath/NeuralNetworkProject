@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH -J test_densenet_swish
+#SBATCH -J test_vgg16
 #SBATCH  -o %x.%j.out
 #SBATCH  -e %x.%j.err
 #SBATCH  -p quanah
