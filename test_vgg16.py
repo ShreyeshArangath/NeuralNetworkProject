@@ -52,7 +52,7 @@ def dumpModel(modelName, phase):
     modelName = "model_" + modelName + "_ " + phase + ".pkl"
     pickle.dump(model, open(modelName, 'wb'))
     
-def getDatasetsByCar(cars):
+def getDatasetsByCar(cars,  imageSize = (224, 224), batchSize = 32):
     train_ds = None 
     val_ds = None 
     for car in cars: 
@@ -72,8 +72,8 @@ EPOCHS = 5
 modelName = "vgg16"
 # Initial layer input shape
 inpShape =  (224, 224, 3)
-cars = ['x5', 'model3']
-train_ds, val_ds = getDatasetsByCar(cars)
+cars = ['x5']
+train_ds, val_ds = getDatasetsByCar(cars, batchSize=64)
 
 # trainingFolder = 'data/x5/train/RGB/'
 # testingFolder = 'data/x5/test_with_labels/RGB/'
