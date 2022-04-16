@@ -72,7 +72,7 @@ EPOCHS = 5
 modelName = "vgg16"
 # Initial layer input shape
 inpShape =  (224, 224, 3)
-cars = ['x5']
+cars = ['x5', 'model3']
 train_ds, val_ds = getDatasetsByCar(cars, batchSize=64)
 
 # trainingFolder = 'data/x5/train/RGB/'
