@@ -70,17 +70,9 @@ def getDatasetsByCar(cars):
 
 EPOCHS = 5
 modelName = "efficientNetB0"
-# Initial layer input shape
 inpShape =  (224, 224, 3)
-cars = ['x5', 'model3']
+cars = ['x5', 'model3', 'hilux']
 train_ds, val_ds = getDatasetsByCar(cars)
-
-# trainingFolder = 'data/x5/train/RGB/'
-# testingFolder = 'data/x5/test_with_labels/RGB/'
-# # don't need to pass subset string - datasets already split
-# train_ds = getDataset(trainingFolder, "training")
-# val_ds =  getDataset(testingFolder, "validation")
-
 train_ds, val_ds = configurePerformance(train_ds, val_ds)
 
 
@@ -135,7 +127,6 @@ hist_results_tuned = model.fit(
   train_ds,
   validation_data=val_ds,
   epochs=9,
-  #steps_per_epoch=len(train_ds)?
   initial_epoch=hist_results.epoch[-1]
 )
 
@@ -144,7 +135,3 @@ dumpModel(modelName, "phase2")
 preds = model.predict(val_ds, verbose = 1)
 model.evaluate(val_ds)
 
-"""
-recall_m:162/188 [========================>.....] - ETA: 30s - loss: 0.1416 - accuracy: 0.9541 - recall_m:163/188
-
-"""
