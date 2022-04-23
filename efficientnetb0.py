@@ -70,27 +70,40 @@ def getDatasetsByCar(cars):
 
 EPOCHS = 5
 modelName = "efficientNetB0"
-# Initial layer input shape
 inpShape =  (224, 224, 3)
-cars = ['x5', 'model3']
+cars = ['x5', 'model3', 'hilux']
+
+batch_size = 32
+AUTOTUNE = tf.data.AUTOTUNE
+
 train_ds, val_ds = getDatasetsByCar(cars)
-
-# trainingFolder = 'data/x5/train/RGB/'
-# testingFolder = 'data/x5/test_with_labels/RGB/'
-# # don't need to pass subset string - datasets already split
-# train_ds = getDataset(trainingFolder, "training")
-# val_ds =  getDataset(testingFolder, "validation")
-
 train_ds, val_ds = configurePerformance(train_ds, val_ds)
+
+resize_and_rescale = tf.keras.Sequential([
+  layers.Resizing(inpShape[0], inpShape[0]),
+  layers.Rescaling(1./255)
+])
+
+data_augmentation = tf.keras.Sequential([
+  layers.RandomFlip("horizontal_and_vertical"),
+  layers.RandomRotation(0.2),
+])
 
 
 dropoutRate = 0.2
 numClasses = 7 
 inp = layers.Input(shape=inpShape)
+augmentation = tf.keras.Sequential([
+  # Add the preprocessing layers you created earlier.
+  resize_and_rescale,
+  data_augmentation,
+])
+
 baseModel = EfficientNetB0(weights="imagenet",
                    include_top = False) 
 
 baseModel.trainable = False 
+inp = augmentation(inp)
 x = baseModel(inp, training=False)
 x =  layers.GlobalAveragePooling2D(name="avg_pool")(x)
 x = layers.Dropout(dropoutRate, noise_shape=None, seed=None)(x)
@@ -135,7 +148,6 @@ hist_results_tuned = model.fit(
   train_ds,
   validation_data=val_ds,
   epochs=9,
-  #steps_per_epoch=len(train_ds)?
   initial_epoch=hist_results.epoch[-1]
 )
 
@@ -144,7 +156,3 @@ dumpModel(modelName, "phase2")
 preds = model.predict(val_ds, verbose = 1)
 model.evaluate(val_ds)
 
-"""
-recall_m:162/188 [========================>.....] - ETA: 30s - loss: 0.1416 - accuracy: 0.9541 - recall_m:163/188
-
-"""
