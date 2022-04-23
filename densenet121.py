@@ -74,6 +74,15 @@ cars = ['x5', 'model3', 'hilux']
 train_ds, val_ds = getDatasetsByCar(cars)
 train_ds, val_ds = configurePerformance(train_ds, val_ds)
 
+resize_and_rescale = tf.keras.Sequential([
+  layers.Resizing(inpShape[0], inpShape[0]),
+  layers.Rescaling(1./255)
+])
+
+data_augmentation = tf.keras.Sequential([
+  layers.RandomFlip("horizontal_and_vertical"),
+  layers.RandomRotation(0.2),
+])
 
 dropoutRate = 0.2
 numClasses = 7 

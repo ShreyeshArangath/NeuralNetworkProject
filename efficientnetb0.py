@@ -72,17 +72,38 @@ EPOCHS = 5
 modelName = "efficientNetB0"
 inpShape =  (224, 224, 3)
 cars = ['x5', 'model3', 'hilux']
+
+batch_size = 32
+AUTOTUNE = tf.data.AUTOTUNE
+
 train_ds, val_ds = getDatasetsByCar(cars)
 train_ds, val_ds = configurePerformance(train_ds, val_ds)
+
+resize_and_rescale = tf.keras.Sequential([
+  layers.Resizing(inpShape[0], inpShape[0]),
+  layers.Rescaling(1./255)
+])
+
+data_augmentation = tf.keras.Sequential([
+  layers.RandomFlip("horizontal_and_vertical"),
+  layers.RandomRotation(0.2),
+])
 
 
 dropoutRate = 0.2
 numClasses = 7 
 inp = layers.Input(shape=inpShape)
+augmentation = tf.keras.Sequential([
+  # Add the preprocessing layers you created earlier.
+  resize_and_rescale,
+  data_augmentation,
+])
+
 baseModel = EfficientNetB0(weights="imagenet",
                    include_top = False) 
 
 baseModel.trainable = False 
+inp = augmentation(inp)
 x = baseModel(inp, training=False)
 x =  layers.GlobalAveragePooling2D(name="avg_pool")(x)
 x = layers.Dropout(dropoutRate, noise_shape=None, seed=None)(x)

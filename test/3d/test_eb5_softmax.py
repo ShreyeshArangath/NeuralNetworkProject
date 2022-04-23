@@ -146,7 +146,7 @@ except Exception:
 baseModel.trainable = True
 for layer in model.layers[1].layers:
     if isinstance(layer, layers.BatchNormalization):
-      layer.trainable = False
+        layer.trainable = False
         
 model.compile(
     loss = tf.keras.losses.SparseCategoricalCrossentropy(),
