@@ -87,18 +87,19 @@ baseModel = VGG16(weights='imagenet')
 
 baseModel.trainable = False 
 x = baseModel(inp, training=False)
+print(baseModel.summary())
 x = layers.Dropout(dropoutRate, noise_shape=None, seed=None)(x)
 out = layers.Dense(numClasses,activation="softmax", name = "pred")(x)
 model = keras.Model(inp, out, name="FeatureExtraction-B0")
-model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate=0.01),
-                loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-                # metrics=['accuracy']
-                metrics=['accuracy',
-                    recall_m,
-                    precision_m,
-                    f1_m
-                    ]
-            )
+
+model.compile(loss = tf.keras.losses.SparseCategoricalCrossentropy(),
+              optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001),
+              metrics=['accuracy',
+              recall_m,
+              precision_m,
+              f1_m
+              ]
+              )
 
 
 input = load_image(sys.argv[1])
@@ -107,7 +108,7 @@ preds = model.predict(input)
 print(preds)
 top_1 = np.argmax(preds)
 print("Predicted:", top_1)
-heatmap = make_gradcam_heatmap(input, model, last_conv_layer_name="block5_conv3")
+heatmap = make_gradcam_heatmap(input, baseModel, last_conv_layer_name="block5_conv3")
 save_and_display_gradcame(img_path=sys.argv[1], heatmap=heatmap)
 
 
